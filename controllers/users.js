@@ -103,55 +103,6 @@ router.get('/users/:username', async (req, res) => {
   }
 });
 
-// * Create User (POST)
-router.post('/users', verifyToken, async (req, res, next) => {
-  try {
-    const { username, email, password, passwordConfirmation, Bio, location } = req.body
-
-    // password confirmation
-    if (password !== passwordConfirmation) {
-      throw new InvalidDataError('Passwords do not match.', 'password')
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ username }, { email }]
-    })
-
-    if (existingUser) {
-      throw new InvalidDataError('Username or email already exists')
-    }
-
-    // create user
-    const newUser = await User.create({ 
-      username, 
-      email, 
-      password,
-      Bio: Bio || '',
-      location: location || ''
-    })
-
-    // JWT user info token
-    const token = generateToken(newUser)
-
-    // Send the response to the client
-    return res.status(201).json({
-      message: 'User created successfully',
-      user: {
-        _id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
-        Bio: newUser.Bio,
-        location: newUser.location
-      },
-      token
-    })
-
-  } catch (error) {
-    next(error)
-  }
-})
 
 // * Update User (PUT)
 router.put('/users/:username', verifyToken, async (req, res, next) => {

@@ -25,7 +25,7 @@ const ratingSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-});
+}, { timestamps: true });
 
 const Rating = mongoose.model('Rating', ratingSchema)
 
