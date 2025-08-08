@@ -3,7 +3,7 @@ import Item from '../models/item.js'
 import verifyToken from '../middleware/verifyToken.js'
 
 // Custom errors
-import { NotFound, Forbidden } from '../utils/errors.js'
+import { NotFoundError, UnauthorizedError } from '../utils/errors.js'
 
 const router = express.Router()
 
@@ -77,4 +77,4 @@ router.delete('/:itemId', verifyToken, async (req, res, next) => {
   }
 })
 
-export default router
+export { router as itemsRouter }

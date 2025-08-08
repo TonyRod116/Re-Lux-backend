@@ -74,23 +74,23 @@ router.get('/users/:username', async (req, res) => {
       const viewer = req.session?.user || null;
       const profileUser = await User.findOne({ username: req.params.username });
       if (!profileUser) {
-          return res.status(404).json({ message: ‘User not found’ });
+          return res.status(404).json({ message: 'User not found' });
       }
       const isOwner = viewer && viewer._id.toString() === profileUser._id.toString();
       // Always fetch public items (or all if owner)1
       const myItems = await Item.find({
           contributor: profileUser._id,
-          ...(isOwner ? {} : { visibility: ‘public’ })  // Optional filtering
-      }).populate(‘contributor’);
+          ...(isOwner ? {} : { visibility: 'public' })  // Optional filtering
+      }).populate('contributor');
       // Only return liked items if profile owner
       const likedItems = isOwner
-          ? await Item.find({ likedbyUsers: profileUser._id }).populate(‘contributor’)
+          ? await Item.find({ likedbyUsers: profileUser._id }).populate('contributor')
           : [];
       // Build the profile response
       const profile = {
           username: profileUser.username,
           avatar: profileUser.avatar || null,
-          bio: profileUser.bio || ‘’,
+          bio: profileUser.bio || '',
           items: myItems,
           ...(isOwner && {
               likedItems,
@@ -104,16 +104,4 @@ router.get('/users/:username', async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-export default usersRouter
+export { router as usersRouter }

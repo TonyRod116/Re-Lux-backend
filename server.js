@@ -19,7 +19,8 @@ import notFound from './middleware/notFound.js'
 import errorHandler from './middleware/errorHandler.js'
 
 // *Routers
-import usersRouter from './controllers/users.js'
+import { usersRouter } from './controllers/users.js'
+import { itemsRouter } from './controllers/items.js'
 
 const app = express()
 const port = process.env.PORT || 3000 
@@ -29,6 +30,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 // *Routes
+app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', usersRouter)
 
