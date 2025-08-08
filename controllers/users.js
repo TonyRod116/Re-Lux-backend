@@ -36,7 +36,6 @@ router.post('/sign-up', async (req, res, next) => {
     }
 })
 
-
 // *Sign In
 router.post('/sign-in', async (req, res, next) => {
   try {
@@ -66,6 +65,21 @@ const token = generateToken(foundUser)
     next(error)
   }
 })
+
+
+// * Profile
+
+router.get('/user/:userId', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId)
+    if (!user) {throw new NotFoundError('User not found')}
+    return res.status(200).json(user)
+  } catch (error) {
+    next(error)
+  }
+})
+
+
 
 
 
