@@ -104,4 +104,101 @@ router.get('/users/:username', async (req, res) => {
 });
 
 
+// * Update User (PUT)
+router.put('/users/:username', verifyToken, async (req, res, next) => {
+  try {
+    const { username, email, Bio, location, profilePic } = req.body
+    const targetUsername = req.params.username
+
+    // Check if user exists
+    const existingUser = await User.findOne({ username: targetUsername })
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // Check if the logged-in user is the owner
+    const isOwner = req.user && req.user._id.toString() === existingUser._id.toString()
+    if (!isOwner) {
+      throw new UnauthorizedError('You can only update your own profile')
+    }
+
+    // Check if new username/email already exists (if being changed)
+    if (username && username !== targetUsername) {
+      const usernameExists = await User.findOne({ username })
+      if (usernameExists) {
+        throw new InvalidDataError('Username already exists')
+      }
+    }
+
+    if (email && email !== existingUser.email) {
+      const emailExists = await User.findOne({ email })
+      if (emailExists) {
+        throw new InvalidDataError('Email already exists')
+      }
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      existingUser._id,
+      {
+        ...(username && { username }),
+        ...(email && { email }),
+        ...(Bio !== undefined && { Bio }),
+        ...(location !== undefined && { location }),
+        ...(profilePic && { profilePic })
+      },
+      { new: true, runValidators: true }
+    )
+
+    // Generate new token with updated user info
+    const token = generateToken(updatedUser)
+
+    return res.status(200).json({
+      message: 'User updated successfully',
+      user: {
+        _id: updatedUser._id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        profilePic: updatedUser.profilePic,
+        Bio: updatedUser.Bio,
+        location: updatedUser.location
+      },
+      token
+    })
+
+  } catch (error) {
+    next(error)
+  }
+})
+
+// * Delete User (DELETE)
+router.delete('/users/:username', verifyToken, async (req, res, next) => {
+  try {
+    const targetUsername = req.params.username
+
+    // Check if user exists
+    const existingUser = await User.findOne({ username: targetUsername })
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    // Check if the logged-in user is the owner
+    const isOwner = req.user && req.user._id.toString() === existingUser._id.toString()
+    if (!isOwner) {
+      throw new UnauthorizedError('You can only delete your own account')
+    }
+
+    // Delete the user
+    await User.findByIdAndDelete(existingUser._id)
+
+    return res.status(200).json({
+      message: 'User account deleted successfully'
+    })
+
+  } catch (error) {
+    next(error)
+  }
+})
+
+
 export { router as usersRouter }
