@@ -21,6 +21,7 @@ import errorHandler from './middleware/errorHandler.js'
 // *Routers
 import { usersRouter } from './controllers/users.js'
 import { itemsRouter } from './controllers/items.js'
+import { reviewsRouter } from './controllers/reviews.js'
 
 const app = express()
 const port = process.env.PORT || 3000 
@@ -33,6 +34,7 @@ app.use(morgan('dev'))
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', usersRouter)
+app.use('/users', reviewsRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {
