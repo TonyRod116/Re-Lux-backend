@@ -77,4 +77,4 @@ router.delete('/:itemId', verifyToken, async (req, res, next) => {
   }
 })
 
-export default router
+export { router as ratingsRouter }
