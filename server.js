@@ -29,7 +29,8 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 // *Routes
-app.use('/api/auth', usersRouter)
+app.use('/users', usersRouter)
+app.use('/auth', usersRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {
