@@ -69,18 +69,51 @@ const token = generateToken(foundUser)
 
 // * Profile
 
-router.get('/user/:userId', async (req, res, next) => {
+router.get('/users/:username', async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId)
-    if (!user) {throw new NotFoundError('User not found')}
-    return res.status(200).json(user)
+      const viewer = req.session?.user || null;
+      const profileUser = await User.findOne({ username: req.params.username });
+      if (!profileUser) {
+          return res.status(404).json({ message: ‘User not found’ });
+      }
+      const isOwner = viewer && viewer._id.toString() === profileUser._id.toString();
+      // Always fetch public items (or all if owner)1
+      const myItems = await Item.find({
+          contributor: profileUser._id,
+          ...(isOwner ? {} : { visibility: ‘public’ })  // Optional filtering
+      }).populate(‘contributor’);
+      // Only return liked items if profile owner
+      const likedItems = isOwner
+          ? await Item.find({ likedbyUsers: profileUser._id }).populate(‘contributor’)
+          : [];
+      // Build the profile response
+      const profile = {
+          username: profileUser.username,
+          avatar: profileUser.avatar || null,
+          bio: profileUser.bio || ‘’,
+          items: myItems,
+          ...(isOwner && {
+              likedItems,
+              email: profileUser.email,
+          })
+      };
+      return res.json(profile);
   } catch (error) {
-    next(error)
+      next(error);
   }
-})
+});
 
 
 
 
 
-export default router
+
+
+
+
+
+
+
+
+
+export default usersRouter
