@@ -3,12 +3,16 @@ import 'dotenv/config'
 import morgan from 'morgan'        
 import mongoose from 'mongoose'     
 import verifyToken from './middleware/verifyToken.js'
+import cors from 'cors'
+
+
+
 
 const startServers = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI)
     console.log('🛢️ Database connected')
-
+    
     app.listen(port, () => console.log(`🚀 Server running on port ${port}`))
   } catch (error) {
     console.log(error)
@@ -30,6 +34,10 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 // *Routes
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  credentials: true
+}))
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', usersRouter)
