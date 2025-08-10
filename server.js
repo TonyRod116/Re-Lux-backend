@@ -38,6 +38,7 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }))
+
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', usersRouter)
