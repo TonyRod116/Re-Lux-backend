@@ -10,7 +10,7 @@ const router = express.Router()
 // Starting path for this router: /api/items
 
 // * Create
-router.post('', verifyToken, async (req, res, next) => {
+router.post('/new', verifyToken, async (req, res, next) => {
   try {
     req.body.owner = req.user._id
     const item = await Item.create(req.body)
