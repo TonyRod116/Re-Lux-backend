@@ -7,10 +7,10 @@ import { NotFoundError, UnauthorizedError } from '../utils/errors.js'
 
 const router = express.Router()
 
-// Starting path for this router: /api/items
+// Starting path for this router: /items
 
 // * Create
-router.post('', verifyToken, async (req, res, next) => {
+router.post('/new', verifyToken, async (req, res, next) => {
   try {
     req.body.owner = req.user._id
     const item = await Item.create(req.body)
@@ -30,12 +30,24 @@ router.get('', async (req, res, next) => {
   }
 })
 
+// * Types 
+
+router.get("/types", async (req, res, next) => {
+  try {
+    const enumValues = Item.schema.path("type").enumValues;
+    res.json(enumValues);
+  } catch (error) {
+    next(error)
+  }
+})
+
+
 // * Show
 router.get('/:itemId', async (req, res, next) => {
   try {
     const { itemId } = req.params
     const item = await Item.findById(itemId).populate(['pledges', 'owner'])
-    if (!item) throw new NotFound('Item not found')
+    if (!item) throw new NotFoundError('Item not found')
 
     return res.json(item)
   } catch (error) {
@@ -48,9 +60,9 @@ router.put('/:itemId', verifyToken, async (req, res, next) => {
   try {
     const { itemId } = req.params
     const item = await Item.findById(itemId)
-    if (!item) throw new NotFound('Item not found')
+    if (!item) throw new NotFoundError('Item not found')
 
-    if (!item.owner.equals(req.user._id)) throw new Forbidden()
+    if (!item.owner.equals(req.user._id)) throw new UnauthorizedError()
 
     const updatedItem = await Item.findByIdAndUpdate(itemId, req.body, { returnDocument: 'after' })
 
@@ -65,9 +77,9 @@ router.delete('/:itemId', verifyToken, async (req, res, next) => {
   try {
     const { itemId } = req.params
     const item = await Item.findById(itemId)
-    if (!item) throw new NotFound('Item not found')
+    if (!item) throw new NotFoundError('Item not found')
 
-    if (!item.owner.equals(req.user._id)) throw new Forbidden()
+    if (!item.owner.equals(req.user._id)) throw new UnauthorizedError()
 
     await Item.findByIdAndDelete(itemId)
 
