@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import verifyToken from '../middleware/verifyToken.js'
 import { generateToken } from '../utils/tokens.js'
+import Item from '../models/item.js'
 
 
 const router = express.Router()

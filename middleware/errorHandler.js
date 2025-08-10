@@ -17,8 +17,9 @@ const errorHandler = (err, req, res, next) => {
   logError(err)
 
 // * 404/ Not Found
-if (err.name === 'NotFound')
-  return res.se
+if (err.name === 'NotFound') {
+  return res.status(404).json({ message: 'Not found' })
+}
 
   if (err.name === 'InvalidDataError') {
     return res.status(err.status).json(err.response)
