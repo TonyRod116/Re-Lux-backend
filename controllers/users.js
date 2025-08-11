@@ -118,16 +118,12 @@ router.get('/users/:username', async (req, res) => {
 
 // * Update User (PUT)
 router.put('/users/:userId', verifyToken, async (req, res, next) => {
-  try {    
-    console.log('🔍 Update profile request:')
-    console.log('👤 req.user:', req.user)
-    console.log('🎯 targetUsername:', req.params.username)
-    console.log('📝 req.body:', req.body)
+  try {
 
-    const { username, email, Bio, location, profilePic } = req.body
+    const { username, email, bio, location, profilePic } = req.body
     
     // Check if user exists
-    const targetUsername = req.params.userId
+    const targetUserId = req.params.userId
     const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' })
@@ -140,15 +136,21 @@ router.put('/users/:userId', verifyToken, async (req, res, next) => {
     }
 
     // Check if new username/email already exists (if being changed)
-    if (username && username !== targetUsername) {
-      const usernameExists = await User.findOne({ username })
+    if (username && username !== existingUser.username) {
+      const usernameExists = await User.findOne({ 
+        username, 
+        _id: { $ne: existingUser._id } // * except the current user (not equal)
+      })
       if (usernameExists) {
         throw new InvalidDataError('Username already exists')
       }
     }
 
     if (email && email !== existingUser.email) {
-      const emailExists = await User.findOne({ email })
+      const emailExists = await User.findOne({ 
+        email, 
+        _id: { $ne: existingUser._id }  
+      })
       if (emailExists) {
         throw new InvalidDataError('Email already exists')
       }
@@ -160,7 +162,7 @@ router.put('/users/:userId', verifyToken, async (req, res, next) => {
       {
         ...(username && { username }),
         ...(email && { email }),
-        ...(Bio !== undefined && { Bio }),
+        ...(bio !== undefined && { bio }),
         ...(location !== undefined && { location }),
         ...(profilePic && { profilePic })
       },
@@ -177,7 +179,7 @@ router.put('/users/:userId', verifyToken, async (req, res, next) => {
         username: updatedUser.username,
         email: updatedUser.email,
         profilePic: updatedUser.profilePic,
-        Bio: updatedUser.Bio,
+        bio: updatedUser.bio,
         location: updatedUser.location
       },
       token
@@ -189,15 +191,10 @@ router.put('/users/:userId', verifyToken, async (req, res, next) => {
 })
 
 // * Delete User (DELETE)
-router.delete('/users/:username', verifyToken, async (req, res, next) => {
+router.delete('/users/:userId', verifyToken, async (req, res, next) => {
   try {
-
-    console.log('🔍 Update profile request:')
-    console.log('👤 req.user:', req.user)
-    console.log('🎯 targetUserId:', req.params.userId)
-    console.log('📝 req.body:', req.body)
     
-    const targetUsername = req.params.username
+    const targetUserId = req.params.userId
     // Check if user exists
     const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
