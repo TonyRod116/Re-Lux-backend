@@ -10,18 +10,19 @@ const router = express.Router()
 // Starting path for this router: /items
 
 // * Create
-router.post('/new', verifyToken, async (req, res, next) => {
+router.post('/', verifyToken, async (req, res, next) => {
   try {
     req.body.owner = req.user._id
     const item = await Item.create(req.body)
     return res.status(201).json(item)
   } catch (error) {
+    console.error('Error creating item:', error)  
     next(error)
   }
 })
 
 // * Index
-router.get('', async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const items = await Item.find()
     return res.json(items)
