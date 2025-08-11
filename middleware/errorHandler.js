@@ -1,6 +1,6 @@
 const logError = (err) => {
   console.log ('--------------------------------')
-  console.log ('🚨🚨   EROOR   🚨🚨')
+  console.log ('🚨🚨   ERROR   🚨🚨')
   console.log ('Error: ', err.message)
   console.log ('Name: ', err.name)
   console.log ('Status: ', err.status)
