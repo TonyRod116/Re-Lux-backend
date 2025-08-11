@@ -12,7 +12,7 @@ const router = express.Router()
 // * Create
 router.post('/', verifyToken, async (req, res, next) => {
   try {
-    req.body.owner = req.user._id
+    req.body.seller = req.user._id
     const item = await Item.create(req.body)
     return res.status(201).json(item)
   } catch (error) {
@@ -47,7 +47,7 @@ router.get("/types", async (req, res, next) => {
 router.get('/:itemId', async (req, res, next) => {
   try {
     const { itemId } = req.params
-    const item = await Item.findById(itemId).populate(['pledges', 'owner'])
+    const item = await Item.findById(itemId).populate('seller', 'username')
     if (!item) throw new NotFoundError('Item not found')
 
     return res.json(item)
