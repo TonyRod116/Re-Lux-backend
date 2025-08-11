@@ -49,7 +49,7 @@ app.get('/protected', verifyToken, (req, res, next) => {
 })
 
 app.get('/', (req, res) => {
-  res.json({ status: 'server home route is running🚀' })
+  res.json({ message: 'server home route is running🚀' })
 })
 
 // *Error handling middleware 
