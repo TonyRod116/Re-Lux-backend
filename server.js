@@ -48,6 +48,10 @@ app.get('/protected', verifyToken, (req, res, next) => {
   res.json({ message: 'This is a protected route' })
 })
 
+app.get('/', (req, res) => {
+  res.json({ status: 'server home route is running🚀' })
+})
+
 // *Error handling middleware 
 app.use(notFound)
 app.use(errorHandler)
