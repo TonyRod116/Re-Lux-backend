@@ -47,7 +47,7 @@ router.get("/types", async (req, res, next) => {
 router.get('/:itemId', async (req, res, next) => {
   try {
     const { itemId } = req.params
-    const item = await Item.findById(itemId).populate(['pledges', 'owner'])
+    const item = await Item.findById(itemId).populate('seller')
     if (!item) throw new NotFoundError('Item not found')
 
     return res.json(item)
