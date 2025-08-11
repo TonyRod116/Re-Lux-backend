@@ -1,7 +1,6 @@
 import User from '../models/user.js'
 import express from 'express'
 import { InvalidDataError, UnauthorizedError } from '../utils/errors.js'
-import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import verifyToken from '../middleware/verifyToken.js'
 import { generateToken } from '../utils/tokens.js'
@@ -15,6 +14,18 @@ const router = express.Router()
 router.post('/sign-up', async (req, res, next) => {
   try {
     const { username, email, password, passwordConfirmation} = req.body
+
+    // Check if username already exists
+  const existingUsername = await User.findOne({ username })
+  if (existingUsername) {
+    return res.status(400).json({ message: 'Username already exists' })
+  }
+
+ // Check if email already exists
+  const existingEmail = await User.findOne({ email })
+  if (existingEmail) {
+    return res.status(400).json({ message: 'Email already exists' })
+  }
 
     // password confirmation
     if (password !== passwordConfirmation) {
@@ -106,13 +117,14 @@ router.get('/users/:username', async (req, res) => {
 
 
 // * Update User (PUT)
-router.put('/users/:username', verifyToken, async (req, res, next) => {
+router.put('/users/:userId', verifyToken, async (req, res, next) => {
   try {
-    const { username, email, Bio, location, profilePic } = req.body
-    const targetUsername = req.params.username
 
+    const { username, email, bio, location, profilePic } = req.body
+    
     // Check if user exists
-    const existingUser = await User.findOne({ username: targetUsername })
+    const targetUserId = req.params.userId
+    const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' })
     }
@@ -124,15 +136,21 @@ router.put('/users/:username', verifyToken, async (req, res, next) => {
     }
 
     // Check if new username/email already exists (if being changed)
-    if (username && username !== targetUsername) {
-      const usernameExists = await User.findOne({ username })
+    if (username && username !== existingUser.username) {
+      const usernameExists = await User.findOne({ 
+        username, 
+        _id: { $ne: existingUser._id } // * except the current user (not equal)
+      })
       if (usernameExists) {
         throw new InvalidDataError('Username already exists')
       }
     }
 
     if (email && email !== existingUser.email) {
-      const emailExists = await User.findOne({ email })
+      const emailExists = await User.findOne({ 
+        email, 
+        _id: { $ne: existingUser._id }  
+      })
       if (emailExists) {
         throw new InvalidDataError('Email already exists')
       }
@@ -144,7 +162,7 @@ router.put('/users/:username', verifyToken, async (req, res, next) => {
       {
         ...(username && { username }),
         ...(email && { email }),
-        ...(Bio !== undefined && { Bio }),
+        ...(bio !== undefined && { bio }),
         ...(location !== undefined && { location }),
         ...(profilePic && { profilePic })
       },
@@ -161,7 +179,7 @@ router.put('/users/:username', verifyToken, async (req, res, next) => {
         username: updatedUser.username,
         email: updatedUser.email,
         profilePic: updatedUser.profilePic,
-        Bio: updatedUser.Bio,
+        bio: updatedUser.bio,
         location: updatedUser.location
       },
       token
@@ -173,12 +191,12 @@ router.put('/users/:username', verifyToken, async (req, res, next) => {
 })
 
 // * Delete User (DELETE)
-router.delete('/users/:username', verifyToken, async (req, res, next) => {
+router.delete('/users/:userId', verifyToken, async (req, res, next) => {
   try {
-    const targetUsername = req.params.username
-
+    
+    const targetUserId = req.params.userId
     // Check if user exists
-    const existingUser = await User.findOne({ username: targetUsername })
+    const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' })
     }
