@@ -41,7 +41,7 @@ app.use(cors({
 
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
-app.use('/auth', usersRouter)
+app.use('/api/auth', usersRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {

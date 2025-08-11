@@ -1,7 +1,6 @@
 import User from '../models/user.js'
 import express from 'express'
 import { InvalidDataError, UnauthorizedError } from '../utils/errors.js'
-import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import verifyToken from '../middleware/verifyToken.js'
 import { generateToken } from '../utils/tokens.js'
@@ -15,6 +14,18 @@ const router = express.Router()
 router.post('/sign-up', async (req, res, next) => {
   try {
     const { username, email, password, passwordConfirmation} = req.body
+
+    // Check if username already exists
+  const existingUsername = await User.findOne({ username })
+  if (existingUsername) {
+    return res.status(400).json({ message: 'Username already exists' })
+  }
+
+ // Check if email already exists
+  const existingEmail = await User.findOne({ email })
+  if (existingEmail) {
+    return res.status(400).json({ message: 'Email already exists' })
+  }
 
     // password confirmation
     if (password !== passwordConfirmation) {
