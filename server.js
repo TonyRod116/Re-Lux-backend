@@ -5,19 +5,6 @@ import mongoose from 'mongoose'
 import verifyToken from './middleware/verifyToken.js'
 import cors from 'cors'
 
-
-
-
-const startServers = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI)
-    console.log('🛢️ Database connected')
-    
-    app.listen(port, () => console.log(`🚀 Server running on port ${port}`))
-  } catch (error) {
-    console.log(error)
-  }
-}
 // *Middleware
 import notFound from './middleware/notFound.js'
 import errorHandler from './middleware/errorHandler.js'
@@ -34,15 +21,19 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(morgan('dev'))
 
+
+
+
 // *Routes
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }))
 
+
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
-app.use('/auth', usersRouter)
+app.use('/api/auth', usersRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {
@@ -57,6 +48,16 @@ app.get('/', (req, res) => {
 app.use(notFound)
 app.use(errorHandler)
 
+const startServers = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI)
+    console.log('🛢️ Database connected')
+    
+    app.listen(port, () => console.log(`🚀 Server running on port ${port}`))
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 startServers()
 
