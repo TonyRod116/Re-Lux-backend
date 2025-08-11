@@ -117,13 +117,18 @@ router.get('/users/:username', async (req, res) => {
 
 
 // * Update User (PUT)
-router.put('/users/:username', verifyToken, async (req, res, next) => {
-  try {
-    const { username, email, Bio, location, profilePic } = req.body
-    const targetUsername = req.params.username
+router.put('/users/:userId', verifyToken, async (req, res, next) => {
+  try {    
+    console.log('🔍 Update profile request:')
+    console.log('👤 req.user:', req.user)
+    console.log('🎯 targetUsername:', req.params.username)
+    console.log('📝 req.body:', req.body)
 
+    const { username, email, Bio, location, profilePic } = req.body
+    
     // Check if user exists
-    const existingUser = await User.findOne({ username: targetUsername })
+    const targetUsername = req.params.userId
+    const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' })
     }
@@ -186,10 +191,15 @@ router.put('/users/:username', verifyToken, async (req, res, next) => {
 // * Delete User (DELETE)
 router.delete('/users/:username', verifyToken, async (req, res, next) => {
   try {
-    const targetUsername = req.params.username
 
+    console.log('🔍 Update profile request:')
+    console.log('👤 req.user:', req.user)
+    console.log('🎯 targetUserId:', req.params.userId)
+    console.log('📝 req.body:', req.body)
+    
+    const targetUsername = req.params.username
     // Check if user exists
-    const existingUser = await User.findOne({ username: targetUsername })
+    const existingUser = await User.findById(targetUserId)
     if (!existingUser) {
       return res.status(404).json({ message: 'User not found' })
     }
