@@ -8,12 +8,12 @@ const itemSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["handbag","shoes","dress","jacket","trousers","pants","watch","jewelry","coat","skirt","suit","shirt","blouse","sweater","jumper","scarf","belt","sunglasses","wallet","purse","clutch"],
+    enum: ["handbag", "shoes", "dress", "jacket", "trousers", "pants", "watch", "jewelry", "coat", "skirt", "suit", "shirt", "blouse", "sweater", "jumper", "scarf", "belt", "sunglasses", "wallet", "purse", "clutch"],
     required: ['Please provide a type.', true],
   },
   description: {
     type: String,
-    required:  false
+    required: false
   },
   location: {
     type: String,
@@ -27,14 +27,15 @@ const itemSchema = new mongoose.Schema({
     type: [String],
     required: false
   },
-    price: {
+  price: {
     type: Number,
     min: 1,
     required: ['Please provide a minimum price.', true],
   },
   seller: {
-    type: String,
-    required: false
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', 
+    required: true
   }
 })
 
