@@ -80,7 +80,7 @@ router.delete('/:itemId', verifyToken, async (req, res, next) => {
     const item = await Item.findById(itemId)
     if (!item) throw new NotFoundError('Item not found')
 
-    if (!item.owner.equals(req.user._id)) throw new UnauthorizedError()
+    if (!item.seller._id.equals(req.user._id)) throw new UnauthorizedError()
 
     await Item.findByIdAndDelete(itemId)
 
