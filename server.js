@@ -31,7 +31,7 @@ app.use(cors({
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/api/auth', usersRouter)
-app.use('/', stripeRouter)
+app.use('/api/stripe', stripeRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {
