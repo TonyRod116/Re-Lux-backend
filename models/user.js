@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
+import Item from './item.js'
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -37,6 +38,15 @@ userSchema.pre('save', async function (next) {
   next()
 })
 
+userSchema.post('findOneAndUpdate', async function(doc) {
+  if (doc.username) {
+    //Update all items of the user
+    await Item.updateMany(
+      { seller: doc._id },
+      { sellerUsername: doc.username }
+    )
+  }
+})
 
 const User = mongoose.model('User', userSchema)
 
