@@ -8,12 +8,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 router.post('/purchase-intent', async (req, res, next) => {
     try {
         const { amount } = req.body
-        const purchaseIntent = await stripe.purchaseIntents.create({
+        const paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: 'eur',
             automatic_payment_methods: { enabled: true },
         })
-        res.json({ clientSecret: purchaseIntent.client_secret })
+        res.json({ clientSecret: paymentIntent.client_secret })
     } catch (error) {
         console.log(error)
         next(error)
