@@ -24,7 +24,7 @@ router.post('/', verifyToken, async (req, res, next) => {
 // * Index
 router.get('/', async (req, res, next) => {
   try {
-    const items = await Item.find()
+    const items = await Item.find().populate('seller', 'username')
     return res.json(items)
   } catch (error) {
     next(error)

@@ -12,6 +12,7 @@ import errorHandler from './middleware/errorHandler.js'
 // *Routers
 import { usersRouter } from './controllers/users.js'
 import { itemsRouter } from './controllers/items.js'
+import { stripeRouter } from './controllers/stripe.js'
 import { reviewsRouter } from './controllers/reviews.js'
 
 const app = express()
@@ -21,19 +22,16 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(morgan('dev'))
 
-
-
-
 // *Routes
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }))
 
-
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/api/auth', usersRouter)
+app.use('/', stripeRouter)
 
 // * protected route
 app.get('/protected', verifyToken, (req, res, next) => {
