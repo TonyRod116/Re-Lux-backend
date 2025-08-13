@@ -36,8 +36,32 @@ const itemSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', 
     required: true
-  }
+  },
+  offers: [{
+    buyer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    amount: {
+      type: Number,
+      min: 10,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+  }],
+}, {
+  timestamps: true 
 })
+
 
 const Item = mongoose.model('Item', itemSchema)
 
