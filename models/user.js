@@ -1,7 +1,12 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
+import Item from './item.js'
 
 const userSchema = new mongoose.Schema({
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true
+    },
     username: {
       type: String,
       required: ['Please provide a username.', true],
@@ -17,7 +22,7 @@ const userSchema = new mongoose.Schema({
       required: ['Please provide a password.', true]
     },
     profilePic: {
-      type: String,
+      type: [String],
       default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
     },
     bio: {
@@ -37,6 +42,18 @@ userSchema.pre('save', async function (next) {
   next()
 })
 
+userSchema.post('findOneAndUpdate', async function(doc) {
+  try {
+    if (doc && doc.username) {
+      await Item.updateMany(
+        { seller: doc._id },
+        { sellerUsername: doc.username }
+      )
+    }
+  } catch (error) {
+    console.error('Error updating items:', error)
+  }
+})
 
 const User = mongoose.model('User', userSchema)
 

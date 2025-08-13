@@ -65,12 +65,8 @@ const foundUser = await User.findOne({$or:[{username:req.body.identifier},{email
 const token = generateToken(foundUser)
 
 // send the response to the client
-    // res.status(200).json({token:token})
-
-    // responded message
     res.status(200).json({
       message: 'Login successful',
-      user: foundUser,
       token
     })
   } catch (error) {
@@ -174,14 +170,6 @@ router.put('/users/:userId', verifyToken, async (req, res, next) => {
 
     return res.status(200).json({
       message: 'User updated successfully',
-      user: {
-        _id: updatedUser._id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        profilePic: updatedUser.profilePic,
-        bio: updatedUser.bio,
-        location: updatedUser.location
-      },
       token
     })
 
