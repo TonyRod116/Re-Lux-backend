@@ -5,7 +5,12 @@ export const generateToken = (user) => {
     {
       user: {
         _id: user._id,
-        username: user.username
+        username: user.username,
+        email: user.email,
+        bio: user.bio,
+        location: user.location,
+        profilePic: user.profilePic,
+        avatar: user.avatar
       }
     }, // 1st arg: payload
     process.env.TOKEN_SECRET, // 2nd arg: Secret

@@ -42,6 +42,21 @@ router.get("/types", async (req, res, next) => {
   }
 })
 
+// * Get items by user ID
+router.get('/user/:userId', async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    
+    // Find all items where seller matches userId
+    const userItems = await Item.find({ seller: userId })
+      .populate('seller', 'username')
+    
+    return res.json(userItems)
+  } catch (error) {
+    console.error('Error fetching user items:', error)
+    next(error)
+  }
+})
 
 // * Show
 router.get('/:itemId', async (req, res, next) => {
