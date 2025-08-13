@@ -50,8 +50,7 @@ router.get('/user/:userId', async (req, res, next) => {
     // Find all items where seller matches userId
     const userItems = await Item.find({ seller: userId })
       .populate('seller', 'username')
-      .populate('offers.buyer', 'username')
-
+    
     return res.json(userItems)
   } catch (error) {
     console.error('Error fetching user items:', error)
