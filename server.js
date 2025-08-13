@@ -38,10 +38,6 @@ app.get('/protected', verifyToken, (req, res, next) => {
   res.json({ message: 'This is a protected route' })
 })
 
-// * stripe route
-
-
-
 app.get('/', (req, res) => {
   res.json({ message: 'server home route is running🚀' })
 })
