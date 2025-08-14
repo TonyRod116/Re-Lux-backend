@@ -8,7 +8,9 @@ const itemSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["handbag", "shoes", "dress", "jacket", "trousers", "pants", "watch", "jewelry", "coat", "skirt", "suit", "shirt", "blouse", "sweater", "jumper", "scarf", "belt", "sunglasses", "wallet", "purse", "clutch"],
+    enum: ["handbag", "shoes", "dress", "jacket", "trousers", "pants", "watch", "jewelry", "coat", "skirt", "suit", "shirt", "blouse", "sweater", "jumper", "scarf", "belt", "sunglasses", "wallet", "purse", "clutch",
+      "smart watch", "smart glasses", "fitness tracker", "smart ring", "wireless earbuds", "noise-canceling headphones", "smartphone", "tablet", "latop", "smart speaker", "VR headset",
+    "candle", "fragrance", "vase", "side table", "candle holder", "tray", "lamp", "trunk", "towel", "bathrobe", "rug", "soft furnishing", "coffee table"],
     required: ['Please provide a type.', true],
   },
   description: {
