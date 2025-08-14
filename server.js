@@ -28,6 +28,7 @@ app.use(cors({
   credentials: true
 }))
 
+app.use('/reviews', reviewsRouter)
 app.use('/items', itemsRouter)
 app.use('/users', usersRouter)
 app.use('/api/auth', usersRouter)
