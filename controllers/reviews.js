@@ -1,5 +1,4 @@
 import express from 'express'
-import User from '../models/user.js'
 import Review from '../models/review.js'
 import verifyToken from '../middleware/verifyToken.js'
 
