@@ -19,10 +19,10 @@ const itemSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  favourited_by_user: {
-    type: String,
-    required: false
-  },
+  favouritedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   images: {
     type: [String],
     required: false
