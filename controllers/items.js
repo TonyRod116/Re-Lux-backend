@@ -47,6 +47,52 @@ router.get("/types", async (req, res, next) => {
 })
 
 
+// Get offers made by a specific user
+router.get('/offers/user/:userId', async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    
+    // Find all items that have offers from this user
+    const itemsWithOffers = await Item.find({
+      'offers.buyer': userId
+    }).populate('seller', 'username')
+    
+    // Transform the data to show user's offers
+    const userOffers = []
+    
+    itemsWithOffers.forEach(item => {
+      // Find offers made by this user
+      const userItemOffers = item.offers.filter(offer => 
+        offer.buyer.toString() === userId
+      )
+      
+      // Create offer objects with item info
+      userItemOffers.forEach(offer => {
+        userOffers.push({
+          _id: offer._id,
+          amount: offer.amount,
+          status: offer.status,
+          createdAt: offer.createdAt,
+          item: {
+            _id: item._id,
+            title: item.title,
+            price: item.price,
+            images: item.images,
+            seller: item.seller
+          }
+        })
+      })
+    })
+    
+    // Sort by creation date (newest first)
+    userOffers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    
+    res.json(userOffers)
+  } catch (error) {
+    next(error)
+  }
+})
+
 
 
 // * Get items by user ID
@@ -237,6 +283,73 @@ router.get('/:itemId/favorite', verifyToken, async (req, res, next) => {
     const isFavorited = item.favouritedBy.includes(userId)
     
     res.json({ isFavorited })
+  } catch (error) {
+    next(error)
+  }
+})
+
+
+// Accept offer
+router.put('/:itemId/offers/:offerId/accepted', verifyToken, async (req, res, next) => {
+  try {
+    const { itemId, offerId } = req.params
+    const userId = req.user._id
+
+    // Find the item and verify ownership
+    const item = await Item.findById(itemId)
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' })
+    }
+
+    // Check if the user owns this item
+    if (!item.seller.equals(userId)) {
+      return res.status(403).json({ message: 'You can only manage offers for your own items' })
+    }
+
+    // Find and update the offer
+    const offer = item.offers.id(offerId)
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' })
+    }
+
+    // Update offer status
+    offer.status = 'accepted'
+    await item.save()
+
+    res.json({ message: 'Offer accepted successfully', offer })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// Reject offer
+router.put('/:itemId/offers/:offerId/rejected', verifyToken, async (req, res, next) => {
+  try {
+    const { itemId, offerId } = req.params
+    const userId = req.user._id
+
+    // Find the item and verify ownership
+    const item = await Item.findById(itemId)
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' })
+    }
+
+    // Check if the user owns this item
+    if (!item.seller.equals(userId)) {
+      return res.status(403).json({ message: 'You can only manage offers for your own items' })
+    }
+
+    // Find and update the offer
+    const offer = item.offers.id(offerId)
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' })
+    }
+
+    // Update offer status
+    offer.status = 'rejected'
+    await item.save()
+
+    res.json({ message: 'Offer rejected successfully', offer })
   } catch (error) {
     next(error)
   }
