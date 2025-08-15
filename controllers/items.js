@@ -1,5 +1,6 @@
 import express from 'express'
 import Item from '../models/item.js'
+import Favorite from '../models/favorite.js'
 import verifyToken from '../middleware/verifyToken.js'
 
 // Custom errors
@@ -9,8 +10,7 @@ const router = express.Router()
 
 // Starting path for this router: /items
 
-
-// * Index
+// * Index - Get all items
 router.get('/', async (req, res, next) => {
   try {
     const items = await Item.find().populate('seller', 'username')
@@ -20,14 +20,48 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-// Get favorites
+// * Index with favorites - NEW ENDPOINT for frontend
+router.get('/with-favorites', verifyToken, async (req, res, next) => {
+  try {
+    const userId = req.user._id
+    
+    // Get all items with seller info
+    const items = await Item.find()
+      .populate('seller', 'username')
+      .populate('offers.buyer', 'username')
+    
+    // Get user's favorites
+    const userFavorites = await Favorite.find({ userId })
+    const favoriteItemIds = userFavorites.map(fav => fav.itemId.toString())
+    
+    // Add isFavorited field to each item
+    const itemsWithFavorites = items.map(item => ({
+      ...item.toObject(),
+      isFavorited: favoriteItemIds.includes(item._id.toString())
+    }))
+    
+    res.json(itemsWithFavorites)
+  } catch (error) {
+    next(error)
+  }
+})
+
+// * Get favorites - UPDATED
 router.get('/favorites', verifyToken, async (req, res, next) => {
   try {
     const userId = req.user._id
     
-    const favoriteItems = await Item.find({ favouritedBy: userId })
-    .populate('seller', 'username')
-    .populate('favouritedBy', 'username')
+    // Get user's favorites with item details
+    const favorites = await Favorite.find({ userId })
+      .populate({
+        path: 'itemId',
+        populate: { path: 'seller', select: 'username' }
+      })
+    
+    const favoriteItems = favorites.map(fav => ({
+      ...fav.itemId.toObject(),
+      isFavorited: true
+    }))
     
     res.json(favoriteItems)
   } catch (error) {
@@ -35,19 +69,17 @@ router.get('/favorites', verifyToken, async (req, res, next) => {
   }
 })
 
-
 // * Types 
 router.get("/types", async (req, res, next) => {
   try {
-    const enumValues = Item.schema.path("type").enumValues;
-    res.json(enumValues);
+    const enumValues = Item.schema.path("type").enumValues
+    res.json(enumValues)
   } catch (error) {
     next(error)
   }
 })
 
-
-// Get offers made by a specific user
+// * Get offers made by a specific user
 router.get('/offers/user/:userId', async (req, res, next) => {
   try {
     const { userId } = req.params
@@ -93,8 +125,6 @@ router.get('/offers/user/:userId', async (req, res, next) => {
   }
 })
 
-
-
 // * Get items by user ID
 router.get('/user/:userId', async (req, res, next) => {
   try {
@@ -102,8 +132,8 @@ router.get('/user/:userId', async (req, res, next) => {
     
     // Find all items where seller matches userId
     const userItems = await Item.find({ seller: userId })
-    .populate('seller', 'username')
-    .populate('offers.buyer', 'username')
+      .populate('seller', 'username')
+      .populate('offers.buyer', 'username')
     
     return res.json(userItems)
   } catch (error) {
@@ -112,7 +142,6 @@ router.get('/user/:userId', async (req, res, next) => {
   }
 })
 
-
 // * Show specific item
 router.get('/:itemId', async (req, res, next) => {
   try {
@@ -120,34 +149,32 @@ router.get('/:itemId', async (req, res, next) => {
     const item = await Item.findById(itemId).populate('seller', 'username')
     if (!item) throw new NotFoundError('Item not found')
       
-      return res.json(item)
-    } catch (error) {
-      next(error)
-    }
-  })
-  
+    return res.json(item)
+  } catch (error) {
+    next(error)
+  }
+})
 
-  
-  // * Create
-  router.post('/', verifyToken, async (req, res, next) => {
-    try {
-      req.body.seller = req.user._id
-      const item = await Item.create(req.body)
-      return res.status(201).json(item)
-    } catch (error) {
-      console.error('Error creating item:', error)  
-      next(error)
-    }
-  })
-  
-  // * Make an offer
-  router.post('/:itemId/offers', verifyToken, async (req, res, next) => {
-    try {
-      const { itemId } = req.params
-      const { amount } = req.body
-      const buyerId = req.user._id
-      
-      // Validate the offer amount
+// * Create
+router.post('/', verifyToken, async (req, res, next) => {
+  try {
+    req.body.seller = req.user._id
+    const item = await Item.create(req.body)
+    return res.status(201).json(item)
+  } catch (error) {
+    console.error('Error creating item:', error)  
+    next(error)
+  }
+})
+
+// * Make an offer
+router.post('/:itemId/offers', verifyToken, async (req, res, next) => {
+  try {
+    const { itemId } = req.params
+    const { amount } = req.body
+    const buyerId = req.user._id
+    
+    // Validate the offer amount
     if (!amount || amount < 10) {
       return res.status(400).json({ 
         message: 'Offer amount must be at least €10' 
@@ -185,8 +212,6 @@ router.get('/:itemId', async (req, res, next) => {
   }
 })
 
-
-
 // * Update
 router.put('/:itemId', verifyToken, async (req, res, next) => {
   try {
@@ -221,8 +246,53 @@ router.delete('/:itemId', verifyToken, async (req, res, next) => {
   }
 })
 
-// * FAVORITES ROUTES
-// Add to favorites
+// * FAVORITES ROUTES - UPDATED
+
+// Toggle favorite - NEW ENDPOINT for frontend
+router.post('/:itemId/toggle-favorite', verifyToken, async (req, res, next) => {
+  try {
+    const { itemId } = req.params
+    const userId = req.user._id
+    
+    // Check if favorite already exists
+    const existingFavorite = await Favorite.findOne({ userId, itemId })
+    
+    if (existingFavorite) {
+      // Remove favorite
+      await Favorite.findByIdAndDelete(existingFavorite._id)
+      
+      // Update item's favouritedBy array
+      await Item.findByIdAndUpdate(itemId, {
+        $pull: { favouritedBy: userId }
+      })
+      
+      res.json({ 
+        success: true, 
+        message: 'Favorite removed', 
+        isFavorited: false 
+      })
+    } else {
+      // Add favorite
+      const newFavorite = new Favorite({ userId, itemId })
+      await newFavorite.save()
+      
+      // Update item's favouritedBy array
+      await Item.findByIdAndUpdate(itemId, {
+        $addToSet: { favouritedBy: userId }
+      })
+      
+      res.json({ 
+        success: true, 
+        message: 'Favorite added', 
+        isFavorited: true 
+      })
+    }
+  } catch (error) {
+    next(error)
+  }
+})
+
+// Add to favorites - LEGACY (can be removed later)
 router.post('/:itemId/favorite', verifyToken, async (req, res, next) => {
   try {
     const { itemId } = req.params
@@ -248,7 +318,7 @@ router.post('/:itemId/favorite', verifyToken, async (req, res, next) => {
   }
 })
 
-// Remove from favorites
+// Remove from favorites - LEGACY (can be removed later)
 router.delete('/:itemId/favorite', verifyToken, async (req, res, next) => {
   try {
     const { itemId } = req.params
@@ -269,7 +339,7 @@ router.delete('/:itemId/favorite', verifyToken, async (req, res, next) => {
   }
 })
 
-// Check if item is in favorites
+// Check if item is in favorites - LEGACY (can be removed later)
 router.get('/:itemId/favorite', verifyToken, async (req, res, next) => {
   try {
     const { itemId } = req.params
@@ -288,6 +358,7 @@ router.get('/:itemId/favorite', verifyToken, async (req, res, next) => {
   }
 })
 
+// * OFFER MANAGEMENT
 
 // Accept offer
 router.put('/:itemId/offers/:offerId/accepted', verifyToken, async (req, res, next) => {
@@ -339,12 +410,6 @@ router.put('/:itemId/offers/:offerId/rejected', verifyToken, async (req, res, ne
       return res.status(403).json({ message: 'You can only manage offers for your own items' })
     }
 
-    // Find and update the offer
-    const offer = item.offers.id(offerId)
-    if (!offer) {
-      return res.status(404).json({ message: 'Offer not found' })
-    }
-
     // Update offer status
     offer.status = 'rejected'
     await item.save()
@@ -354,7 +419,5 @@ router.put('/:itemId/offers/:offerId/rejected', verifyToken, async (req, res, ne
     next(error)
   }
 })
-
-
 
 export { router as itemsRouter }
