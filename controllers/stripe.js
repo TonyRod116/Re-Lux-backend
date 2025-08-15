@@ -6,6 +6,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 // Stripe route
 router.post('/purchase-intent', async (req, res, next) => {
+    console.log('Route hit!');
+    console.log('Request body:', req.body);
 
     const { amount, cartItems, currency = 'eur' } = req.body;
 
@@ -21,14 +23,14 @@ router.post('/purchase-intent', async (req, res, next) => {
 
         const serverAmountInCents = Math.round(serverTotal * 100);
 
-            if (amount !== serverAmountInCents) {
-      return res.status(400).json({ 
-        error: 'Amount mismatch between frontend and backend',
-        expected: serverAmountInCents,
-        received: amount
-      });
-    }
-    
+        if (amount !== serverAmountInCents) {
+            return res.status(400).json({
+                error: 'Amount mismatch between frontend and backend',
+                expected: serverAmountInCents,
+                received: amount
+            });
+        }
+
 
         const paymentIntent = await stripe.paymentIntents.create({
             amount: serverAmountInCents,
@@ -36,18 +38,18 @@ router.post('/purchase-intent', async (req, res, next) => {
             automatic_payment_methods: { enabled: true },
         })
 
-            res.json({
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
-    });
+        res.json({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+        });
 
-    }  catch (error) {
-    console.error('Error creating payment intent:', error);
-    res.status(500).json({ 
-      error: 'Failed to create payment intent',
-      message: error.message 
-    });
-  }
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(500).json({
+            error: 'Failed to create payment intent',
+            message: error.message
+        });
+    }
 })
 
 
