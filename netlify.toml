@@ -1,0 +1,10 @@
+[functions]
+  external_node_modules = ["express"]
+  node_bundler = "esbuild"
+
+# Catch-all redirect for API calls
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
