@@ -26,7 +26,7 @@ app.use(morgan('dev'))
 
 // *Routes
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }))
 
